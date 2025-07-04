@@ -1,5 +1,6 @@
 import { Geist, Geist_Mono } from "next/font/google";
 import "./globals.css";
+import Navbar from "./components/navbar";
 
 const geistSans = Geist({
   variable: "--font-geist-sans",
@@ -12,7 +13,7 @@ const geistMono = Geist_Mono({
 });
 
 export const metadata = {
- title: 'Animal Help PWA',
+  title: 'Animal Help PWA',
   description: 'Find vets, adopt animals, and help street animals near you.',
   manifest: '/manifest.json',
 
@@ -24,7 +25,8 @@ export default function RootLayout({ children }) {
       <body
         className={`${geistSans.variable} ${geistMono.variable} antialiased`}
       >
-        {children}
+<Navbar/>
+        <main>        {children}         </main>
       </body>
     </html>
   );
