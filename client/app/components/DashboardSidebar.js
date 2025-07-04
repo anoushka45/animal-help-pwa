@@ -2,7 +2,7 @@
 
 import { useState } from 'react'
 import Link from 'next/link'
-import { usePathname } from 'next/navigation'
+import { usePathname, useRouter } from 'next/navigation'
 import {
   LayoutDashboard,
   PawPrint,
@@ -21,6 +21,14 @@ const sidebarLinks = [
 export default function DashboardLayout({ children }) {
   const [open, setOpen] = useState(false)
   const path = usePathname()
+  const router = useRouter()
+
+  const handleLogout = () => {
+    localStorage.removeItem('token')
+    window.dispatchEvent(new Event('storage'))
+
+    router.push('/')
+  }
 
   return (
     <div className="flex">
@@ -54,8 +62,9 @@ export default function DashboardLayout({ children }) {
               })}
             </ul>
           </div>
+
           <button
-            onClick={() => alert('Logging out...')}
+            onClick={handleLogout}
             className="w-full flex items-center gap-3 px-3 py-2 bg-red-500 hover:bg-red-600 rounded-md text-sm font-medium"
           >
             <LogOut size={18} />
@@ -71,7 +80,7 @@ export default function DashboardLayout({ children }) {
         </button>
         <div className="font-bold text-lg">🐾 AnimalAid</div>
         <button
-          onClick={() => alert('Logging out...')}
+          onClick={handleLogout}
           className="text-red-600 text-sm font-semibold"
         >
           Logout

@@ -1,62 +1,85 @@
 'use client'
 
+import { usePathname, useRouter } from 'next/navigation'
+import { useState, useEffect } from 'react'
 import Link from 'next/link'
-import { usePathname } from 'next/navigation'
-import { useState } from 'react'
 import {
-  Menu,
-  X,
-  Home,
-  PawPrint,
-  HeartHandshake,
-  LogIn,
-  UserPlus,
+  Menu, X, Home, PawPrint, HeartHandshake, LogIn, UserPlus
 } from 'lucide-react'
 
 export default function Navbar() {
   const path = usePathname()
+  const router = useRouter()
   const [menuOpen, setMenuOpen] = useState(false)
+  const [isLoggedIn, setIsLoggedIn] = useState(false)
 
-  // 👇 Replace with real auth logic later
-  const isLoggedIn = false // 🔄 Change to false to test public view
+  useEffect(() => {
+    const checkToken = () => {
+      const token = localStorage.getItem('token')
+      setIsLoggedIn(!!token)
+    }
 
-  // ✅ If logged in, hide entire navbar
+    checkToken()
+
+    // 🔁 Listen for storage changes (login/logout)
+    const handleStorageChange = (event) => {
+      if (event.key === 'token' || event.type === 'storage') {
+        checkToken()
+      }
+    }
+
+    window.addEventListener('storage', handleStorageChange)
+    return () => window.removeEventListener('storage', handleStorageChange)
+  }, [])
+
+  // ⛔ If logged in, don't show Navbar
   if (isLoggedIn) return null
-
-  const publicLinks = [
-    { name: 'Home', href: '/', icon: <Home size={18} className="mr-2" /> },
-    { name: 'Find Services', href: '/find-services', icon: <HeartHandshake size={18} className="mr-2" /> },
-    { name: 'Adoption', href: '/adoption', icon: <PawPrint size={18} className="mr-2" /> },
-  ]
 
   return (
     <nav className="bg-gradient-to-r from-purple-600 to-indigo-700 text-white shadow-md sticky top-0 z-50">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <div className="flex justify-between items-center py-4">
-          {/* Brand */}
           <Link href="/" className="text-2xl font-bold tracking-tight flex items-center gap-2">
             🐾 AnimalAid
           </Link>
 
-          {/* Desktop Nav */}
           <div className="hidden md:flex items-center gap-8">
             <ul className="flex gap-6 text-sm lg:text-base items-center">
-              {publicLinks.map((link) => (
-                <li key={link.href}>
-                  <Link
-                    href={link.href}
-                    className={`flex items-center transition-all duration-300 hover:text-purple-200 ${
-                      path === link.href ? 'underline underline-offset-4 font-semibold' : ''
-                    }`}
-                  >
-                    {link.icon}
-                    {link.name}
-                  </Link>
-                </li>
-              ))}
+              <li>
+                <Link
+                  href="/"
+                  className={`flex items-center transition-all duration-300 hover:text-purple-200 ${
+                    path === '/' ? 'underline underline-offset-4 font-semibold' : ''
+                  }`}
+                >
+                  <Home size={18} className="mr-2" />
+                  Home
+                </Link>
+              </li>
+              <li>
+                <Link
+                  href="/find-services"
+                  className={`flex items-center transition-all duration-300 hover:text-purple-200 ${
+                    path === '/find-services' ? 'underline underline-offset-4 font-semibold' : ''
+                  }`}
+                >
+                  <HeartHandshake size={18} className="mr-2" />
+                  Find Services
+                </Link>
+              </li>
+              <li>
+                <Link
+                  href="/adoption"
+                  className={`flex items-center transition-all duration-300 hover:text-purple-200 ${
+                    path === '/adoption' ? 'underline underline-offset-4 font-semibold' : ''
+                  }`}
+                >
+                  <PawPrint size={18} className="mr-2" />
+                  Adoption
+                </Link>
+              </li>
             </ul>
 
-            {/* Auth Buttons */}
             <div className="flex gap-2">
               <Link
                 href="/login"
@@ -75,7 +98,6 @@ export default function Navbar() {
             </div>
           </div>
 
-          {/* Mobile Menu Toggle */}
           <button
             className="md:hidden text-white"
             onClick={() => setMenuOpen(!menuOpen)}
@@ -89,20 +111,36 @@ export default function Navbar() {
         {menuOpen && (
           <div className="md:hidden animate-fadeInDown pb-4">
             <ul className="flex flex-col gap-4">
-              {publicLinks.map((link) => (
-                <li key={link.href}>
-                  <Link
-                    href={link.href}
-                    onClick={() => setMenuOpen(false)}
-                    className={`flex items-center gap-2 px-3 py-2 rounded-md transition ${
-                      path === link.href ? 'bg-purple-800 font-semibold' : 'hover:bg-purple-600'
-                    }`}
-                  >
-                    {link.icon}
-                    {link.name}
-                  </Link>
-                </li>
-              ))}
+              <li>
+                <Link
+                  href="/"
+                  onClick={() => setMenuOpen(false)}
+                  className="flex items-center gap-2 px-3 py-2 rounded-md hover:bg-purple-600"
+                >
+                  <Home size={18} />
+                  Home
+                </Link>
+              </li>
+              <li>
+                <Link
+                  href="/find-services"
+                  onClick={() => setMenuOpen(false)}
+                  className="flex items-center gap-2 px-3 py-2 rounded-md hover:bg-purple-600"
+                >
+                  <HeartHandshake size={18} />
+                  Find Services
+                </Link>
+              </li>
+              <li>
+                <Link
+                  href="/adoption"
+                  onClick={() => setMenuOpen(false)}
+                  className="flex items-center gap-2 px-3 py-2 rounded-md hover:bg-purple-600"
+                >
+                  <PawPrint size={18} />
+                  Adoption
+                </Link>
+              </li>
               <li>
                 <Link
                   href="/login"

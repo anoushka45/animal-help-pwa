@@ -1,66 +1,85 @@
 'use client'
 
-import { signIn } from 'next-auth/react'
-import { useState } from 'react'
+import { useEffect, useState } from 'react'
 import { useRouter } from 'next/navigation'
+import API from '@/utils/axios'
 
 export default function LoginPage() {
-  const [email, setEmail] = useState('')
-  const [password, setPassword] = useState('')
   const router = useRouter()
+  const [form, setForm] = useState({ email: '', password: '' })
+  const [error, setError] = useState('')
+
+  useEffect(() => {
+    // Load Google Identity Services
+    const loadGoogle = () => {
+      if (window.google && window.google.accounts) {
+        window.google.accounts.id.initialize({
+  client_id: process.env.NEXT_PUBLIC_GOOGLE_CLIENT_ID, // ✅ Correct
+          callback: handleGoogleResponse,
+        })
+
+        window.google.accounts.id.renderButton(
+          document.getElementById('googleSignInDiv'),
+          { theme: 'outline', size: 'large' }
+        )
+      }
+    }
+
+    const script = document.createElement('script')
+    script.src = 'https://accounts.google.com/gsi/client'
+    script.async = true
+    script.onload = loadGoogle
+    document.body.appendChild(script)
+  }, [])
+
+  const handleGoogleResponse = async (response) => {
+    try {
+      const res = await API.post('/auth/google', {
+        token: response.credential,
+      })
+
+      localStorage.setItem('token', res.data.token)
+      window.dispatchEvent(new Event('storage'))
+
+      router.push('/dashboard')
+    } catch (err) {
+      setError('Google login failed')
+    }
+
+
+  }
+
+  const handleChange = (e) => {
+    setForm({ ...form, [e.target.name]: e.target.value })
+  }
 
   const handleSubmit = async (e) => {
     e.preventDefault()
-    const res = await signIn('credentials', {
-      redirect: false,
-      email,
-      password,
-    })
+    setError('')
+    try {
+      const res = await API.post('/auth/login', form)
+      localStorage.setItem('token', res.data.token)
+      window.dispatchEvent(new Event('storage')) // ✅ updates navbar
 
-    if (res.ok) {
       router.push('/dashboard')
-    } else {
-      alert('Invalid credentials')
+    } catch (err) {
+      setError(err.response?.data?.message || 'Login failed')
     }
   }
 
   return (
-    <div className="min-h-screen flex items-center justify-center px-4">
-      <div className="max-w-md w-full space-y-6 bg-white p-8 shadow-md rounded">
-        <h2 className="text-center text-2xl font-bold">Login to AnimalAid</h2>
+    <div className="max-w-md mx-auto mt-20 p-6 bg-white shadow rounded">
+      <h2 className="text-xl font-semibold mb-4">Login</h2>
+      {error && <p className="text-red-500">{error}</p>}
+      <form onSubmit={handleSubmit} className="space-y-4">
+        <input type="email" name="email" placeholder="Email" onChange={handleChange} required className="w-full border px-3 py-2" />
+        <input type="password" name="password" placeholder="Password" onChange={handleChange} required className="w-full border px-3 py-2" />
+        <button type="submit" className="w-full bg-black text-white py-2 rounded">Login</button>
+      </form>
 
-        <button
-          onClick={() => signIn('google')}
-          className="w-full bg-red-500 hover:bg-red-600 text-white py-2 rounded mb-4"
-        >
-          Sign in with Google
-        </button>
+      <div className="mt-6 text-center text-gray-500">OR</div>
 
-        <form onSubmit={handleSubmit} className="space-y-4">
-          <input
-            type="email"
-            placeholder="Email"
-            value={email}
-            onChange={(e) => setEmail(e.target.value)}
-            className="w-full border border-gray-300 px-4 py-2 rounded"
-            required
-          />
-          <input
-            type="password"
-            placeholder="Password"
-            value={password}
-            onChange={(e) => setPassword(e.target.value)}
-            className="w-full border border-gray-300 px-4 py-2 rounded"
-            required
-          />
-          <button
-            type="submit"
-            className="w-full bg-purple-600 hover:bg-purple-700 text-white py-2 rounded"
-          >
-            Login
-          </button>
-        </form>
-      </div>
+      <div id="googleSignInDiv" className="mt-4 flex justify-center" />
     </div>
   )
 }
