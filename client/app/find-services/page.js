@@ -139,7 +139,7 @@ export default function FindServices() {
     <>
       {/* Google Maps Script */}
       <Script
-        // src={`https://maps.googleapis.com/maps/api/js?key=AIzaSyBCM2ot11FNw8A4nm1C8lKh0UIytdeEbQ4&libraries=places`}
+  src={`https://maps.googleapis.com/maps/api/js?key=${process.env.NEXT_PUBLIC_GOOGLE_MAPS_API_KEY}&libraries=places`}
         strategy="afterInteractive"
       />
 
